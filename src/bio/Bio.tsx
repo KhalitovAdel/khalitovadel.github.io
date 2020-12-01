@@ -27,9 +27,9 @@ export class Bio extends React.Component<any, any> {
 
     protected static get skills() {
         const skills = (data?.skills as { [key: string]: string[] }) || {};
-        return (Object.keys(skills) || []).map((key) => {
+        return (Object.keys(skills) || []).map((key, globalIndex) => {
             return (
-                <div className="lg:py-2 lg:ml-2">
+                <div className="lg:py-2 lg:ml-2" key={globalIndex}>
                     <p className="mb-1">{StringUtils.firstUpper(key)}</p>
                     <ul>
                         {(skills[key] || []).map((value, index) => {

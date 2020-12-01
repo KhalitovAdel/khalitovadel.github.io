@@ -2,7 +2,7 @@
   "name": "bio",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://KhalitovAdel.github.io/khalitovadel.github.io",
+  "homepage": "https://KhalitovAdel.github.io/khalitovadel.github.io",
   "dependencies": {
     "@craco/craco": "^5.9.0",
     "@testing-library/jest-dom": "^5.11.6",
@@ -16,6 +16,7 @@
     "postcss": "^7.0.35",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
+    "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.1",
     "tailwindcss": "npm:@tailwindcss/postcss7-compat@^2.0.1",
     "typescript": "^4.1.2",
@@ -48,6 +49,7 @@
     ]
   },
   "devDependencies": {
+    "@types/react-router-dom": "^5.1.6",
     "gh-pages": "^3.1.0",
     "prettier": "^2.2.1"
   }
