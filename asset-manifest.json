@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/khalitovadel.github.io/static/css/main.2e768f73.chunk.css",
+    "main.js": "/khalitovadel.github.io/static/js/main.8a3684ea.chunk.js",
+    "main.js.map": "/khalitovadel.github.io/static/js/main.8a3684ea.chunk.js.map",
+    "runtime-main.js": "/khalitovadel.github.io/static/js/runtime-main.4f1e0ddd.js",
+    "runtime-main.js.map": "/khalitovadel.github.io/static/js/runtime-main.4f1e0ddd.js.map",
+    "static/js/2.23ef66de.chunk.js": "/khalitovadel.github.io/static/js/2.23ef66de.chunk.js",
+    "static/js/2.23ef66de.chunk.js.map": "/khalitovadel.github.io/static/js/2.23ef66de.chunk.js.map",
+    "static/js/3.3a3accb7.chunk.js": "/khalitovadel.github.io/static/js/3.3a3accb7.chunk.js",
+    "static/js/3.3a3accb7.chunk.js.map": "/khalitovadel.github.io/static/js/3.3a3accb7.chunk.js.map",
+    "index.html": "/khalitovadel.github.io/index.html",
+    "static/css/main.2e768f73.chunk.css.map": "/khalitovadel.github.io/static/css/main.2e768f73.chunk.css.map",
+    "static/js/2.23ef66de.chunk.js.LICENSE.txt": "/khalitovadel.github.io/static/js/2.23ef66de.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.4f1e0ddd.js",
+    "static/js/2.23ef66de.chunk.js",
+    "static/css/main.2e768f73.chunk.css",
+    "static/js/main.8a3684ea.chunk.js"
+  ]
+}
