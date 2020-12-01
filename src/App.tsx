@@ -1,26 +1,14 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Bio } from './bio/Bio';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export class App extends React.Component<any, any> {
+    render() {
+        const title = document.getElementsByTagName('title')[0] || ({} as any);
+        title.innerHTML = process.env.REACT_APP_SELF_FULLNAME || '';
+        return (
+            <div className="App">
+                <Bio />
+            </div>
+        );
+    }
 }
-
-export default App;
