@@ -5,22 +5,34 @@ export const data = {
             'Since 2019 I have been working on @mobishop - JS back-end developer (stack: mongodb, express, nodejs). I wrote API, worked with big data and complex integration (online store for large distributors).',
             'Since 2020 I have been working on @redtaxi: 4 mobile apps, 6 servers.',
             'Since march 2020 I have been working on @alternativa: microservices, nestjs, vue. (insurance broker)',
+            'Since february 2021 I have been working on @pinpointer: react, flow, graphql, express',
         ],
     },
     history: [
+        {
+            entity: '@pinpointer',
+            link: 'https://www.pinpointer.se',
+            state: 'full stack engineer',
+            period_start: '2021/2',
+            period_end: '',
+            region: 'Sweden (remotely)',
+            todo: [
+                'Integrations with scrive system.',
+                'Implementation first microservice and connecting them with monolit.'
+            ],
+        },
         {
             entity: '@alternativa',
             link: 'https://agenta.online/',
             state: 'back-end engineer',
             period_start: '2020',
-            period_end: '',
+            period_end: '2021/2',
             region: 'RF, Kazan',
             todo: [
                 'Integrations with insurance companies.',
                 'Practice nestjs, rmq, kubernetes, elasticsearch.',
                 'Integrations with accounting system.',
                 'Containerization (bitbucket).',
-                'Future: Google Sheets api.',
             ],
         },
         {
@@ -29,7 +41,7 @@ export const data = {
             state: 'back-end engineer',
             period_start: '2020',
             period_end: '2020/3',
-            region: 'Lebanon',
+            region: 'Lebanon (remotely)',
             todo: ['Connection of a payment gateway.', 'Project deployment in development environments.', 'Containerization (gitlab-ci).'],
         },
         {
@@ -62,10 +74,10 @@ export const data = {
         },
     ],
     skills: {
-        languages: ['TypeScript', 'Node js', 'JSdoc | Interfaces'],
+        languages: ['TypeScript', 'Node js', 'Python'],
         Databases: ['Mongodb', 'MySQL', 'Postgres'],
-        Frameworks: ['Angular', 'Vue', 'Express', 'Nestjs'],
-        Other: ['Unix', 'Docker', 'Gitlab CI', 'Bitbucket CI', 'Elasticsearch (ELK)', 'RabbitMQ', 'Web scraping', 'Socket'],
+        Frameworks: ['Angular', 'Vue', 'Express', 'Nestjs', 'React'],
+        Other: ['Linux', 'Docker', 'Gitlab CI', 'Bitbucket CI', 'Elasticsearch (ELK)', 'RabbitMQ', 'Web scraping', 'Socket', 'GraphQL', 'Flow'],
     },
     education: [
         {
