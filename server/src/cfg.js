@@ -5,9 +5,14 @@ export default {
         port: 3000,
     },
     monster: {
+        hosts: {
+            monster: 'https://www.monster.com',
+            identity: 'https://identity.monster.com',
+        },
         routes: {
-            home: 'https://www.monster.com',
-            profileDetails: 'https://www.monster.com/profile/detail',
+            profileDetails: '/profile/detail',
+            login: '/usernamepassword/login',
+            loginCb: '/login/callback',
         },
         auth: {
             email: String(env.monster.email),

@@ -35,8 +35,8 @@ export class MonsterMonitorService {
 
     protected async reconnect(): Promise<void> {
         try {
-            await this.login.softLogout();
-            await this.login.init();
+            await this.login.logout();
+            await this.login.login();
         } catch (e) {
             this.logger.error('Error while connection with service: ' + e.message);
         }

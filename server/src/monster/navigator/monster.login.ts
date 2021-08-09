@@ -1,53 +1,164 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Page } from 'puppeteer';
+import { HttpService } from '@nestjs/axios';
+import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { AxiosResponse } from 'axios';
+import { JSDOM } from 'jsdom';
+import { lastValueFrom } from 'rxjs';
 
 import cfg from '../../cfg';
+import { CookieStorage } from '../../common/cookie.storage';
 import { CustomProvider } from '../../enum/custom-provider.enum';
-import { IMonsterState } from '../interface/monster-state.interface';
+import { ErrorDefault } from '../../error';
 
+//TODO: move redirect to single function
 @Injectable()
 export class MonsterLogin {
-    protected readonly profilesDetailHref = `a[href="${cfg.monster.routes.profileDetails}"]`;
+    public state!: Record<string, string>;
 
-    protected readonly emailInput = 'input[data-testid="auth0-email-input"]';
+    public token!: string;
 
-    protected readonly passwordInput = 'input[data-testid="auth0-password-input"]';
+    constructor(public readonly http: HttpService, @Inject(CustomProvider.MONSTER_IDENTITY__COOKIE_STORAGE) protected readonly cookieStorage: CookieStorage) {}
 
-    protected readonly submitButton = 'button[data-testid="auth0-continue-with-email-button"]';
-
-    protected readonly isOnProfile = 'div[data-testid="profile-application-history-tab-PROFILE"]';
-
-    public state: IMonsterState | undefined;
-
-    constructor(@Inject(CustomProvider.MONSTER_PAGE) public readonly page: Page) {}
-
-    public async init(): Promise<void> {
-        await this.goToLoginPage();
-        await this.login(cfg.monster.auth.email, cfg.monster.auth.password);
-        await this.initState();
+    public isLogin(): boolean {
+        return !!this.token && !!this.state;
     }
 
-    public async softLogout(): Promise<void> {
-        const client = await this.page.target().createCDPSession();
-        await client.send('Network.clearBrowserCookies');
-        await client.send('Network.clearBrowserCache');
+    public async logout(): Promise<void> {
+        await Promise.resolve();
     }
 
-    protected async goToLoginPage(): Promise<void> {
-        await this.page.goto(cfg.monster.routes.home);
-        await this.page.waitForSelector(this.profilesDetailHref);
-        await this.page.click(this.profilesDetailHref);
-        await this.page.waitForSelector(this.emailInput);
+    public async login(): Promise<void> {
+        const { state, client: client_id } = await this.getInitDetails();
+
+        const response = await lastValueFrom(
+            this.http.request({
+                method: 'POST',
+                url: new URL(cfg.monster.routes.login, cfg.monster.hosts.identity).href,
+                headers: { Cookie: this.cookieStorage.getCookieString() },
+                data: {
+                    client_id,
+                    tenant: 'monster-candidate-prod',
+                    response_type: 'code',
+                    state,
+                    username: cfg.monster.auth.email,
+                    password: cfg.monster.auth.password,
+                    connection: 'Username-Password-Authentication',
+                    scope: 'openid profile email offline_access',
+                    audience: 'profiles-profile-app-service',
+                    _csrf: this.cookieStorage.getByKey('_csrf'),
+                },
+            })
+        );
+
+        if (response.status !== HttpStatus.OK || typeof response.data !== 'string') throw new ErrorDefault();
+
+        const form = new JSDOM(response.data);
+        this.token = (form.window.document.querySelector('input[name="wresult"]') as HTMLInputElement).value;
+        const localState = (form.window.document.querySelector('input[name="wctx"]') as HTMLInputElement).value;
+        const wa = (form.window.document.querySelector('input[name="wa"]') as HTMLInputElement).value;
+
+        const payload = new URLSearchParams();
+        payload.append('wa', wa);
+        payload.append('wresult', this.token);
+        payload.append('wctx', localState);
+
+        const responseCb = await lastValueFrom(
+            this.http.request({
+                method: 'POST',
+                url: new URL(cfg.monster.routes.loginCb, cfg.monster.hosts.identity).href,
+                maxRedirects: 0,
+                headers: {
+                    Cookie: this.cookieStorage.getCookieString(),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                data: payload,
+            })
+        );
+
+        if (responseCb.status !== HttpStatus.FOUND) throw new ErrorDefault();
+
+        const responseAuthResume = await lastValueFrom(
+            this.http.request({
+                method: 'GET',
+                url: new URL(responseCb.headers.location, cfg.monster.hosts.identity).href,
+                maxRedirects: 0,
+                withCredentials: true,
+                headers: { Cookie: this.cookieStorage.getCookieString() },
+            })
+        );
+
+        if (responseAuthResume.status !== HttpStatus.FOUND) throw new ErrorDefault();
+
+        const responseProfileAuthCB = await lastValueFrom(
+            this.http.request({
+                method: 'GET',
+                url: responseAuthResume.headers.location,
+                maxRedirects: 0,
+                withCredentials: true,
+                headers: { Cookie: this.cookieStorage.getCookieString() },
+            })
+        );
+
+        if (responseProfileAuthCB.status !== HttpStatus.FOUND) throw new ErrorDefault();
+
+        const detailsPage = await lastValueFrom(
+            this.http.request({
+                method: 'GET',
+                url: new URL(responseProfileAuthCB.headers.location, cfg.monster.hosts.monster).href,
+                maxRedirects: 0,
+                withCredentials: true,
+                headers: { Cookie: this.cookieStorage.getCookieString() },
+            })
+        );
+
+        if (detailsPage.status !== HttpStatus.OK || typeof detailsPage.data !== 'string') throw new ErrorDefault();
+
+        const profile = new JSDOM(detailsPage.data, { runScripts: 'dangerously' });
+        this.state = profile.window.__INITIAL_DATA__;
     }
 
-    protected async login(email: string, password: string): Promise<void> {
-        await this.page.type(this.emailInput, email);
-        await this.page.type(this.passwordInput, password);
-        await this.page.click(this.submitButton);
-        await this.page.waitForSelector(this.isOnProfile);
+    protected async goToProfileDetailPage(): Promise<AxiosResponse<unknown>> {
+        const detailsUrl = new URL(cfg.monster.routes.profileDetails, cfg.monster.hosts.monster);
+        const response = await lastValueFrom(
+            this.http.request({
+                method: 'GET',
+                url: detailsUrl.href,
+                maxRedirects: 0,
+                withCredentials: true,
+            })
+        );
+
+        if (response.status !== HttpStatus.FOUND) throw new ErrorDefault();
+
+        return response;
     }
 
-    protected async initState(): Promise<void> {
-        this.state = (await this.page.evaluate(() => (window as unknown as { __INITIAL_DATA__: unknown }).__INITIAL_DATA__)) as IMonsterState;
+    //TODO: In last request, into html you can see how to encode state
+    protected async getInitDetails(): Promise<{ state: string; client: string }> {
+        const response = await this.goToProfileDetailPage();
+
+        const responseAuth = await lastValueFrom(this.http.request({ method: 'GET', url: response.headers.location, maxRedirects: 0, withCredentials: true }));
+
+        if (responseAuth.status !== HttpStatus.FOUND) throw new ErrorDefault();
+
+        const responseLogin = await lastValueFrom(
+            this.http.request({
+                method: 'GET',
+                url: new URL(responseAuth.headers.location, cfg.monster.hosts.identity).href,
+                maxRedirects: 0,
+                withCredentials: true,
+                headers: { Cookie: this.cookieStorage.getCookieString() },
+            })
+        );
+
+        if (responseLogin.status !== HttpStatus.OK) throw new ErrorDefault();
+
+        const targetUrlWithData = new URLSearchParams(responseAuth.headers.location.replace('/login', ''));
+
+        const state = targetUrlWithData.get('state');
+        const client = targetUrlWithData.get('client');
+
+        if (!state || !client) throw new ErrorDefault();
+
+        return { state, client };
     }
 }
