@@ -8,13 +8,13 @@ import cfg from '../../cfg';
 import { CookieStorage } from '../../common/cookie.storage';
 import { CustomProvider } from '../../enum/custom-provider.enum';
 import { ErrorDefault } from '../../error';
+import { IMonsterState } from '../interface/monster-state.interface';
 
-//TODO: move redirect to single function
 @Injectable()
 export class MonsterLogin {
-    public state!: Record<string, string>;
+    public state!: IMonsterState | null;
 
-    public token!: string;
+    public token!: string | null;
 
     constructor(public readonly http: HttpService, @Inject(CustomProvider.MONSTER_IDENTITY__COOKIE_STORAGE) protected readonly cookieStorage: CookieStorage) {}
 
@@ -23,7 +23,9 @@ export class MonsterLogin {
     }
 
     public async logout(): Promise<void> {
-        await Promise.resolve();
+        this.cookieStorage.clear();
+        this.state = null;
+        this.token = null;
     }
 
     public async login(): Promise<void> {
@@ -33,7 +35,6 @@ export class MonsterLogin {
             this.http.request({
                 method: 'POST',
                 url: new URL(cfg.monster.routes.login, cfg.monster.hosts.identity).href,
-                headers: { Cookie: this.cookieStorage.getCookieString() },
                 data: {
                     client_id,
                     tenant: 'monster-candidate-prod',
@@ -61,13 +62,13 @@ export class MonsterLogin {
         payload.append('wresult', this.token);
         payload.append('wctx', localState);
 
+        const urlCb = new URL(cfg.monster.routes.loginCb, cfg.monster.hosts.identity);
         const responseCb = await lastValueFrom(
             this.http.request({
                 method: 'POST',
-                url: new URL(cfg.monster.routes.loginCb, cfg.monster.hosts.identity).href,
+                url: urlCb.href,
                 maxRedirects: 0,
                 headers: {
-                    Cookie: this.cookieStorage.getCookieString(),
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 data: payload,
@@ -76,47 +77,14 @@ export class MonsterLogin {
 
         if (responseCb.status !== HttpStatus.FOUND) throw new ErrorDefault();
 
-        const responseAuthResume = await lastValueFrom(
-            this.http.request({
-                method: 'GET',
-                url: new URL(responseCb.headers.location, cfg.monster.hosts.identity).href,
-                maxRedirects: 0,
-                withCredentials: true,
-                headers: { Cookie: this.cookieStorage.getCookieString() },
-            })
-        );
-
-        if (responseAuthResume.status !== HttpStatus.FOUND) throw new ErrorDefault();
-
-        const responseProfileAuthCB = await lastValueFrom(
-            this.http.request({
-                method: 'GET',
-                url: responseAuthResume.headers.location,
-                maxRedirects: 0,
-                withCredentials: true,
-                headers: { Cookie: this.cookieStorage.getCookieString() },
-            })
-        );
-
-        if (responseProfileAuthCB.status !== HttpStatus.FOUND) throw new ErrorDefault();
-
-        const detailsPage = await lastValueFrom(
-            this.http.request({
-                method: 'GET',
-                url: new URL(responseProfileAuthCB.headers.location, cfg.monster.hosts.monster).href,
-                maxRedirects: 0,
-                withCredentials: true,
-                headers: { Cookie: this.cookieStorage.getCookieString() },
-            })
-        );
-
-        if (detailsPage.status !== HttpStatus.OK || typeof detailsPage.data !== 'string') throw new ErrorDefault();
+        const detailsPage = await this.redirectLoop(responseCb.headers.location, urlCb.origin);
 
         const profile = new JSDOM(detailsPage.data, { runScripts: 'dangerously' });
         this.state = profile.window.__INITIAL_DATA__;
     }
 
-    protected async goToProfileDetailPage(): Promise<AxiosResponse<unknown>> {
+    // In last request, into html you can see how to encode state
+    protected async getInitDetails(): Promise<{ state: string; client: string }> {
         const detailsUrl = new URL(cfg.monster.routes.profileDetails, cfg.monster.hosts.monster);
         const response = await lastValueFrom(
             this.http.request({
@@ -129,36 +97,30 @@ export class MonsterLogin {
 
         if (response.status !== HttpStatus.FOUND) throw new ErrorDefault();
 
-        return response;
-    }
+        const responseAuth = await this.redirectLoop(response.headers.location, new URL(String(response.config.url)).origin);
 
-    //TODO: In last request, into html you can see how to encode state
-    protected async getInitDetails(): Promise<{ state: string; client: string }> {
-        const response = await this.goToProfileDetailPage();
-
-        const responseAuth = await lastValueFrom(this.http.request({ method: 'GET', url: response.headers.location, maxRedirects: 0, withCredentials: true }));
-
-        if (responseAuth.status !== HttpStatus.FOUND) throw new ErrorDefault();
-
-        const responseLogin = await lastValueFrom(
-            this.http.request({
-                method: 'GET',
-                url: new URL(responseAuth.headers.location, cfg.monster.hosts.identity).href,
-                maxRedirects: 0,
-                withCredentials: true,
-                headers: { Cookie: this.cookieStorage.getCookieString() },
-            })
-        );
-
-        if (responseLogin.status !== HttpStatus.OK) throw new ErrorDefault();
-
-        const targetUrlWithData = new URLSearchParams(responseAuth.headers.location.replace('/login', ''));
-
-        const state = targetUrlWithData.get('state');
-        const client = targetUrlWithData.get('client');
+        const targetUrlWithData = new URL(String(responseAuth.config.url));
+        const state = targetUrlWithData.searchParams.get('state');
+        const client = targetUrlWithData.searchParams.get('client');
 
         if (!state || !client) throw new ErrorDefault();
 
         return { state, client };
+    }
+
+    protected async redirectLoop(hrefToRedirect: string, prevHost: string): Promise<AxiosResponse<string>> {
+        const correctUrl = /(http(s)?:\/\/.)+/gi.test(hrefToRedirect);
+        const url = new URL(hrefToRedirect, correctUrl ? undefined : prevHost);
+
+        const response = await lastValueFrom(
+            this.http.request({
+                method: 'GET',
+                url: url.href,
+                maxRedirects: 0,
+                withCredentials: true,
+            })
+        );
+
+        return response.status === HttpStatus.FOUND ? this.redirectLoop(response.headers.location, url.origin) : response;
     }
 }

@@ -1,5 +1,3 @@
-import { ErrorDefault } from '../error';
-
 export class CookieStorage {
     protected storage: Map<string, string> = new Map();
 
@@ -7,7 +5,6 @@ export class CookieStorage {
         const target = value.split(';')[0].split('=');
         const key = target[0];
         const val = target[1];
-        if (!key || typeof val !== 'string') throw new ErrorDefault();
         this.storage.set(key, val);
     }
 

@@ -41,6 +41,8 @@ export class MonsterModule {
                 value.headers.Authorization = `Bearer ${this.loginService.token}`;
             }
 
+            value.headers.Cookie = this.cookieStorage.getCookieString();
+
             return value;
         });
     }
