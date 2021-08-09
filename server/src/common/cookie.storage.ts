@@ -26,4 +26,8 @@ export class CookieStorage {
     public getByKey(key: string): string | undefined {
         return this.storage.get(key);
     }
+
+    public removeByKey(key: string): void {
+        this.storage.delete(key);
+    }
 }

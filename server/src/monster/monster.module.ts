@@ -3,19 +3,24 @@ import { Inject, Module } from '@nestjs/common';
 
 import { CookieStorage } from '../common/cookie.storage';
 import { CustomProvider } from '../enum/custom-provider.enum';
+import { MonsterHandler } from './navigator/monster.handler';
 import { MonsterLogin } from './navigator/monster.login';
+import { MonsterUtil } from './navigator/monster.util';
+import { MonsterWatcher } from './navigator/monster.watcher';
 
 @Module({
     imports: [HttpModule.register({ validateStatus: (status: number) => status >= 200 && status <= 302 })],
     providers: [
+        MonsterUtil,
         MonsterLogin,
         // MonsterMonitorService,
         {
             provide: CustomProvider.MONSTER_IDENTITY__COOKIE_STORAGE,
             useValue: new CookieStorage(),
         },
+        MonsterHandler,
         // MonsterUpdater,
-        // MonsterWatcher,
+        MonsterWatcher,
     ],
 })
 export class MonsterModule {

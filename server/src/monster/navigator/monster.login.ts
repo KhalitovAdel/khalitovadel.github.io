@@ -1,6 +1,5 @@
 import { HttpService } from '@nestjs/axios';
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { AxiosResponse } from 'axios';
 import { JSDOM } from 'jsdom';
 import { lastValueFrom } from 'rxjs';
 
@@ -9,6 +8,7 @@ import { CookieStorage } from '../../common/cookie.storage';
 import { CustomProvider } from '../../enum/custom-provider.enum';
 import { ErrorDefault } from '../../error';
 import { IMonsterState } from '../interface/monster-state.interface';
+import { MonsterUtil } from './monster.util';
 
 @Injectable()
 export class MonsterLogin {
@@ -16,7 +16,11 @@ export class MonsterLogin {
 
     public token!: string | null;
 
-    constructor(public readonly http: HttpService, @Inject(CustomProvider.MONSTER_IDENTITY__COOKIE_STORAGE) protected readonly cookieStorage: CookieStorage) {}
+    constructor(
+        @Inject(HttpService) protected readonly http: HttpService,
+        @Inject(CustomProvider.MONSTER_IDENTITY__COOKIE_STORAGE) protected readonly cookieStorage: CookieStorage,
+        protected readonly util: MonsterUtil
+    ) {}
 
     public isLogin(): boolean {
         return !!this.token && !!this.state;
@@ -77,7 +81,7 @@ export class MonsterLogin {
 
         if (responseCb.status !== HttpStatus.FOUND) throw new ErrorDefault();
 
-        const detailsPage = await this.redirectLoop(responseCb.headers.location, urlCb.origin);
+        const detailsPage = await this.util.redirectLoop(responseCb.headers.location, urlCb.origin);
 
         const profile = new JSDOM(detailsPage.data, { runScripts: 'dangerously' });
         this.state = profile.window.__INITIAL_DATA__;
@@ -97,7 +101,7 @@ export class MonsterLogin {
 
         if (response.status !== HttpStatus.FOUND) throw new ErrorDefault();
 
-        const responseAuth = await this.redirectLoop(response.headers.location, new URL(String(response.config.url)).origin);
+        const responseAuth = await this.util.redirectLoop(response.headers.location, new URL(String(response.config.url)).origin);
 
         const targetUrlWithData = new URL(String(responseAuth.config.url));
         const state = targetUrlWithData.searchParams.get('state');
@@ -106,21 +110,5 @@ export class MonsterLogin {
         if (!state || !client) throw new ErrorDefault();
 
         return { state, client };
-    }
-
-    protected async redirectLoop(hrefToRedirect: string, prevHost: string): Promise<AxiosResponse<string>> {
-        const correctUrl = /(http(s)?:\/\/.)+/gi.test(hrefToRedirect);
-        const url = new URL(hrefToRedirect, correctUrl ? undefined : prevHost);
-
-        const response = await lastValueFrom(
-            this.http.request({
-                method: 'GET',
-                url: url.href,
-                maxRedirects: 0,
-                withCredentials: true,
-            })
-        );
-
-        return response.status === HttpStatus.FOUND ? this.redirectLoop(response.headers.location, url.origin) : response;
     }
 }
