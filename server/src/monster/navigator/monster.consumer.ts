@@ -1,27 +1,35 @@
 //https://docs.nestjs.com/techniques/queues
 //if !isLogin pause schedule. if isLogin play
 import { HttpService } from '@nestjs/axios';
+import { OnQueueCompleted, OnQueueFailed, Process, Processor } from '@nestjs/bull';
 import { HttpStatus, Inject } from '@nestjs/common';
 import { AxiosResponse } from 'axios';
+import { Job } from 'bull';
 import { lastValueFrom } from 'rxjs';
 
 import cfg from '../../cfg';
+import { BullQueueEnum } from '../../enum/bull-queue.enum';
 import { ErrorDefault } from '../../error';
-import { MonsterUtil } from './monster.util';
+import { IMonsterTask } from '../interface/monster-task.interface';
+import { MonsterApi } from './monster.api';
 
-export class MonsterHandler {
-    constructor(@Inject(HttpService) protected readonly http: HttpService, protected readonly util: MonsterUtil) {}
+@Processor(BullQueueEnum.MONSTER)
+export class MonsterConsumer {
+    constructor(@Inject(HttpService) protected readonly http: HttpService, protected readonly util: MonsterApi) {}
 
-    protected getRedirectUrl(jobId: string): string {
-        return cfg.monster.routes.jobSearch.concat('?appliedJobId=', jobId);
+    @Process()
+    public async processJob(job: Job<IMonsterTask>): Promise<void> {
+        await this.handleJob(job.data.jobId);
     }
 
-    protected getUrl(jobId: string): URL {
-        const url = new URL(cfg.monster.routes.applyStart, cfg.monster.hosts.monster);
-        url.searchParams.set('jobId', jobId);
-        url.searchParams.set('redirectUri', this.getRedirectUrl(jobId));
+    @OnQueueFailed()
+    public async handleFail(job: Job<IMonsterTask>, error: ErrorDefault): Promise<void> {
+        console.log('Error Handler: ', job, error);
+    }
 
-        return url;
+    @OnQueueCompleted()
+    public async handleError(job: Job<IMonsterTask>, result: unknown): Promise<void> {
+        console.log('Error Success: ', job, result);
     }
 
     protected async handleJob(jobId: string): Promise<void> {
@@ -45,6 +53,18 @@ export class MonsterHandler {
         const finallyUrl = new URL(String(finallyResponse.config.url));
 
         if (finallyUrl.pathname !== cfg.monster.routes.jobSearch) throw new ErrorDefault();
+    }
+
+    protected getRedirectUrl(jobId: string): string {
+        return cfg.monster.routes.jobSearch.concat('?appliedJobId=', jobId);
+    }
+
+    protected getUrl(jobId: string): URL {
+        const url = new URL(cfg.monster.routes.applyStart, cfg.monster.hosts.monster);
+        url.searchParams.set('jobId', jobId);
+        url.searchParams.set('redirectUri', this.getRedirectUrl(jobId));
+
+        return url;
     }
 
     protected async continue(jobId: string): Promise<AxiosResponse<string>> {

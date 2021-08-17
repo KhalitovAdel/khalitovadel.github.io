@@ -1,11 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { MonsterModule } from '../../monster.module';
-import { MonsterHandler } from '../monster.handler';
+import { MonsterConsumer } from '../monster.consumer';
 import { MonsterLogin } from '../monster.login';
 
-describe('MonsterHandler', () => {
-    let service: MonsterHandler;
+// TODO Write all tests for consumer
+describe('MonsterConsumer', () => {
+    let service: MonsterConsumer;
     let loginService: MonsterLogin;
     jest.setTimeout(1000 * 60 * 2);
     beforeAll(async () => {
@@ -14,7 +15,7 @@ describe('MonsterHandler', () => {
         }).compile();
 
         await module.init();
-        service = module.get(MonsterHandler);
+        service = module.get(MonsterConsumer);
         loginService = module.get(MonsterLogin);
     });
 

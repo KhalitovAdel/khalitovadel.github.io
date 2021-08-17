@@ -13,7 +13,7 @@ export class MonsterMonitorService {
     public readonly $isLogin = this._isLogin.asObservable();
 
     constructor(protected readonly login: MonsterLogin) {
-        if (!this.login.state) {
+        if (!this.login.isLogin()) {
             this.hasProblemWithCred();
         }
     }
@@ -41,7 +41,7 @@ export class MonsterMonitorService {
             this.logger.error('Error while connection with service: ' + e.message);
         }
 
-        if (this.login.state) {
+        if (this.login.isLogin()) {
             if (this.interval) clearInterval(this.interval);
             this._isLogin.next(true);
             this.logger.log('Successfully connection with service');

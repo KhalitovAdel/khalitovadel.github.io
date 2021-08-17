@@ -4,6 +4,10 @@ export default {
     server: {
         port: 3000,
     },
+    redis: env.redis,
+    bull: {
+        db: 0,
+    },
     monster: {
         hosts: {
             monster: 'https://www.monster.com',
@@ -40,9 +44,6 @@ export default {
             // Get values from browser or not
             positions: ['JavaScript Developer', 'Web Developer'],
         },
-        auth: {
-            email: String(env.monster.email),
-            password: String(env.monster.password),
-        },
+        auth: env.monster,
     },
 };

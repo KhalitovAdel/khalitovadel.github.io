@@ -1,7 +1,7 @@
 export type IListArg = {
     filter: {
         query: string;
-        address: string;
+        address?: string;
         excludeIds?: string[];
     };
     skip?: number;

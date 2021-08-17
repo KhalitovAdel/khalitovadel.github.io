@@ -1,24 +1,32 @@
 import { HttpModule, HttpService } from '@nestjs/axios';
+import { BullModule } from '@nestjs/bull';
 import { Inject, Module } from '@nestjs/common';
 
 import { CookieStorage } from '../common/cookie.storage';
+import { BullQueueEnum } from '../enum/bull-queue.enum';
 import { CustomProvider } from '../enum/custom-provider.enum';
-import { MonsterHandler } from './navigator/monster.handler';
+import { MonsterApi } from './navigator/monster.api';
+import { MonsterConsumer } from './navigator/monster.consumer';
 import { MonsterLogin } from './navigator/monster.login';
-import { MonsterUtil } from './navigator/monster.util';
 import { MonsterWatcher } from './navigator/monster.watcher';
 
+// TODO: Move all http requests function to utils, and rename utils => api
 @Module({
-    imports: [HttpModule.register({ validateStatus: (status: number) => status >= 200 && status <= 302 })],
+    imports: [
+        BullModule.registerQueue({
+            name: BullQueueEnum.MONSTER,
+        }),
+        HttpModule.register({ validateStatus: (status: number) => status >= 200 && status <= 302 }),
+    ],
     providers: [
-        MonsterUtil,
+        MonsterApi,
         MonsterLogin,
         // MonsterMonitorService,
         {
             provide: CustomProvider.MONSTER_IDENTITY__COOKIE_STORAGE,
             useValue: new CookieStorage(),
         },
-        MonsterHandler,
+        MonsterConsumer,
         // MonsterUpdater,
         MonsterWatcher,
     ],
