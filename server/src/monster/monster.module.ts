@@ -8,6 +8,7 @@ import { CustomProvider } from '../enum/custom-provider.enum';
 import { MonsterApi } from './navigator/monster.api';
 import { MonsterConsumer } from './navigator/monster.consumer';
 import { MonsterLogin } from './navigator/monster.login';
+import { MonsterUpdater } from './navigator/monster.updater';
 import { MonsterWatcher } from './navigator/monster.watcher';
 
 // TODO: Move all http requests function to utils, and rename utils => api
@@ -27,7 +28,7 @@ import { MonsterWatcher } from './navigator/monster.watcher';
             useValue: new CookieStorage(),
         },
         MonsterConsumer,
-        // MonsterUpdater,
+        MonsterUpdater,
         MonsterWatcher,
     ],
 })

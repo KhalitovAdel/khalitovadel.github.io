@@ -19,7 +19,7 @@ export class MonsterApi {
     ) {}
 
     public async listJob(params: IListArg): Promise<IMonsterJonResponse> {
-        const url = new URL(cfg.monster.routes.jobSearchApi, cfg.monster.hosts.api);
+        const url = new URL(cfg.monster.route.jobSearchApi, cfg.monster.origin.api);
 
         return lastValueFrom(
             this.http.request<IMonsterJonResponse>({
@@ -63,7 +63,7 @@ export class MonsterApi {
         const response = await lastValueFrom(
             this.http.request({
                 method: 'POST',
-                url: new URL(cfg.monster.routes.login, cfg.monster.hosts.identity).href,
+                url: new URL(cfg.monster.route.login, cfg.monster.origin.identity).href,
                 data: {
                     client_id,
                     tenant: 'monster-candidate-prod',
@@ -91,7 +91,7 @@ export class MonsterApi {
         payload.append('wresult', token);
         payload.append('wctx', localState);
 
-        const urlCb = new URL(cfg.monster.routes.loginCb, cfg.monster.hosts.identity);
+        const urlCb = new URL(cfg.monster.route.loginCb, cfg.monster.origin.identity);
         const responseCb = await lastValueFrom(
             this.http.request({
                 method: 'POST',
@@ -114,9 +114,70 @@ export class MonsterApi {
         return { state: finallyState };
     }
 
+    public async handleJob(jobId: string): Promise<AxiosResponse<string>> {
+        const url = this.getUrl(jobId);
+        const response = await lastValueFrom(
+            this.http.request({
+                method: 'GET',
+                url: url.href,
+                maxRedirects: 0,
+            })
+        );
+
+        if (response.status !== HttpStatus.FOUND) throw new ErrorDefault();
+
+        const middleOrFinallyResponse = await this.redirectLoop(response.headers.location, url.origin);
+
+        const currentUrl = new URL(String(middleOrFinallyResponse.config.url));
+
+        const finallyResponse = currentUrl.pathname === cfg.monster.route.jobSearch ? middleOrFinallyResponse : await this.continue(jobId);
+
+        const finallyUrl = new URL(String(finallyResponse.config.url));
+
+        if (finallyUrl.pathname !== cfg.monster.route.jobSearch) throw new ErrorDefault();
+
+        return finallyResponse;
+    }
+
+    protected async continue(jobId: string): Promise<AxiosResponse<string>> {
+        const payload = new URLSearchParams();
+        payload.append('jobId', jobId);
+        payload.append('svxRedirectUri', this.getRedirectUrl(jobId));
+        payload.append('result', 'ep');
+        payload.append('resumeType', 'structured');
+
+        const url = new URL(cfg.monster.route.applyContinue, cfg.monster.origin.monster);
+
+        const response = await lastValueFrom(
+            this.http.request({
+                method: 'POST',
+                url: url.href,
+                maxRedirects: 0,
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                data: payload,
+            })
+        );
+
+        return this.redirectLoop(response.headers.location, url.origin);
+    }
+
+    protected getUrl(jobId: string): URL {
+        const url = new URL(cfg.monster.route.applyStart, cfg.monster.origin.monster);
+        url.searchParams.set('jobId', jobId);
+        url.searchParams.set('redirectUri', this.getRedirectUrl(jobId));
+
+        return url;
+    }
+
+    protected getRedirectUrl(jobId: string): string {
+        return cfg.monster.route.jobSearch.concat('?appliedJobId=', jobId);
+    }
+
     // In last request, into html you can see how to encode state
     protected async getInitDetails(): Promise<{ state: string; client: string }> {
-        const detailsUrl = new URL(cfg.monster.routes.profileDetails, cfg.monster.hosts.monster);
+        const detailsUrl = new URL(cfg.monster.route.profileDetails, cfg.monster.origin.monster);
         const response = await lastValueFrom(
             this.http.request({
                 method: 'GET',

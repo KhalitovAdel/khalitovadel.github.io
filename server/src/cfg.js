@@ -9,12 +9,12 @@ export default {
         db: 0,
     },
     monster: {
-        hosts: {
+        origin: {
             monster: 'https://www.monster.com',
             api: 'https://services.monster.io',
             identity: 'https://identity.monster.com',
         },
-        routes: {
+        route: {
             profileDetails: '/profile/detail',
             login: '/usernamepassword/login',
             loginCb: '/login/callback',
