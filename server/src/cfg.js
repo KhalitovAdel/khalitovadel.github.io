@@ -8,6 +8,12 @@ export default {
     bull: {
         db: 0,
     },
+    db: {
+        type: 'postgres',
+        ...env.db,
+        synchronize: true,
+        autoLoadEntities: true,
+    },
     monster: {
         origin: {
             monster: 'https://www.monster.com',

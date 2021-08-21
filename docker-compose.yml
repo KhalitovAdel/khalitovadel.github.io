@@ -2,12 +2,60 @@ version: '3'
 
 networks:
   redis:
+  database:
 
 services:
+  api:
+    build:
+      target: make_app
+      context: .
+      dockerfile: server/Dockerfile
+    networks:
+      - redis
+      - database
+    depends_on:
+      - redis
+      - db
+    environment:
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - DATABASE_HOST=${DATABASE_HOST:-db}
+
+
   redis:
     image: redis:latest
     restart: always
-    ports:
-      - '6379:6379'
     networks:
       - redis
+
+  db_panel:
+    image: dpage/pgadmin4
+    networks:
+      - database
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.com
+      - PGADMIN_DEFAULT_PASSWORD=nimda
+      - PGADMIN_LISTEN_PORT=5050
+
+  db:
+    image: postgres:alpine
+    networks:
+      - database
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Benq1234
+      - POSTGRES_DB=db
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - '3005:80'
+    networks:
+      - redis
+      - database
+    depends_on:
+      - db_panel
+      - api
+    volumes:
+      - ./nginx/proxy.conf:/etc/nginx/proxy.conf
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+

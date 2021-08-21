@@ -15,7 +15,7 @@ import { IMonsterState } from '../interface/monster-state.interface';
 export class MonsterApi {
     constructor(
         @Inject(HttpService) protected readonly http: HttpService,
-        @Inject(CustomProvider.MONSTER_IDENTITY__COOKIE_STORAGE) protected readonly cookieStorage: CookieStorage
+        @Inject(CustomProvider.MONSTER_IDENTITY_COOKIE_STORAGE) protected readonly cookieStorage: CookieStorage
     ) {}
 
     public async listJob(params: IListArg): Promise<IMonsterJonResponse> {

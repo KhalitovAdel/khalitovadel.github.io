@@ -1,0 +1,6 @@
+export enum JobStatus {
+    NEED_TO_HANDLE = 'NEED_TO_HANDLE',
+    HANDLE_PROGRESS = 'HANDLE_PROGRESS',
+    JOINED = 'JOINED',
+    ERROR = 'ERROR',
+}

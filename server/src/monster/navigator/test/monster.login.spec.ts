@@ -18,7 +18,7 @@ describe('MonsterLogin', () => {
 
         await module.init();
         service = module.get(MonsterLogin);
-        cookieStorage = module.get(CustomProvider.MONSTER_IDENTITY__COOKIE_STORAGE);
+        cookieStorage = module.get(CustomProvider.MONSTER_IDENTITY_COOKIE_STORAGE);
     });
 
     afterEach(async () => {
@@ -30,14 +30,14 @@ describe('MonsterLogin', () => {
 
         expect(service['state']).toBeDefined();
         expect(service.token).toBeDefined();
-        expect(service.isLogin()).toEqual(true);
+        expect(service.isLogin).toEqual(true);
     });
 
     it('should logout clear state && cookie', async () => {
         await service.login();
         await service.logout();
 
-        expect(service.isLogin()).toEqual(false);
+        expect(service.isLogin).toEqual(false);
 
         expect(service['state']).toEqual(null);
         expect(service.token).toEqual(null);
