@@ -51,5 +51,8 @@ export default {
             positions: ['JavaScript Developer', 'Web Developer'],
         },
         auth: env.monster,
+        interval: {
+            watch: 1000 * 60 * 15,
+        },
     },
 };

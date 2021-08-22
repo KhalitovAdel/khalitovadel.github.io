@@ -54,7 +54,7 @@ export class MonsterModule {
         });
 
         this.http.axiosRef.interceptors.request.use((value) => {
-            if (this.loginService.isLogin) {
+            if (this.loginService.isLogin && this.loginService.token) {
                 value.headers.Authorization = `Bearer ${this.loginService.token}`;
             }
 

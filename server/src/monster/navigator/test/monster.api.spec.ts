@@ -62,4 +62,19 @@ describe('MonsterApi', () => {
         url.searchParams.set('applyResult', 'exists');
         expect(result.config.url).toEqual(url.href);
     });
+
+    it('should handleJob handle one more job', async () => {
+        const jobs = await service.listJob({ filter: { query: 'javascript' } });
+
+        const first = jobs.jobResults[0].jobId;
+        const second = jobs.jobResults[1].jobId;
+
+        await service.login();
+
+        const resultFirst = await service.handleJob(first);
+        expect(resultFirst).toBeDefined();
+
+        const resultSecond = await service.handleJob(second);
+        expect(resultSecond).toBeDefined();
+    });
 });

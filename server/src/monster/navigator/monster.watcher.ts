@@ -1,6 +1,5 @@
 import { InjectQueue } from '@nestjs/bull';
-import { Inject, Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { Queue } from 'bull';
 
 import cfg from '../../cfg';
@@ -16,9 +15,11 @@ import { MonsterApi } from './monster.api';
 import { MonsterLogin } from './monster.login';
 
 @Injectable()
-export class MonsterWatcher {
+export class MonsterWatcher implements OnModuleInit {
     protected readonly logger = new Logger(MonsterWatcher.name);
     protected fingerPrint!: string | null;
+
+    protected interval: NodeJS.Timer | undefined;
 
     constructor(
         @Inject(MonsterApi) protected readonly api: MonsterApi,
@@ -27,7 +28,16 @@ export class MonsterWatcher {
         @Inject(MonsterLogin) protected readonly loginService: MonsterLogin
     ) {}
 
-    @Cron('0 */15 * * * *')
+    async onModuleInit(): Promise<void> {
+        this.loginService.$isLogin.subscribe((val) => {
+            if (!val && this.interval) return clearInterval(this.interval);
+            if (val && !this.interval) {
+                this.cronJob();
+                this.interval = setInterval(() => this.cronJob(), cfg.monster.interval.watch);
+            }
+        });
+    }
+
     protected async cronJob(): Promise<void> {
         if (!this.loginService.isLogin) return;
         try {
@@ -63,7 +73,11 @@ export class MonsterWatcher {
     }
 
     protected async handleJob(job: IMonsterJob): Promise<void> {
-        await this.jobService.create({ type: JobType.MONSTER, jobId: job.jobId });
+        const where = { type: JobType.MONSTER, jobId: job.jobId };
+        const exists = await this.jobService.fetch({ where });
+        if (exists) return;
+
+        await this.jobService.create(where);
         try {
             const task: IMonsterTask = { jobId: job.jobId };
             await this.queue.add(task);

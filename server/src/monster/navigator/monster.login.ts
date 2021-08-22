@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { BehaviorSubject } from 'rxjs';
 
 import { CookieStorage } from '../../common/cookie.storage';
@@ -25,8 +26,14 @@ export class MonsterLogin implements OnModuleInit {
 
     async onModuleInit(): Promise<void> {
         if (!this.isLogin) {
-            await this.hasProblemWithCred();
+            await this.login();
         }
+    }
+
+    @Cron('0 */1 * * * *')
+    protected async cronLogin(): Promise<void> {
+        if (this.isLogin) return;
+        await this.login();
     }
 
     get token(): string | null {
@@ -44,33 +51,16 @@ export class MonsterLogin implements OnModuleInit {
     }
 
     public async login(): Promise<void> {
-        const { state } = await this.api.login();
-        this.state = state;
+        try {
+            const { state } = await this.api.login();
+            this.state = state;
+            if (this.isLogin) this._isLogin.next(true);
+        } catch (e) {
+            this.logger.error('Error with login: ' + e.message);
+        }
     }
 
     async hasProblemWithCred(): Promise<void> {
-        await this.tryToReconnect();
-    }
-
-    protected async tryToReconnect(): Promise<void> {
-        await this.reconnect();
-        if (!this.isLogin) {
-            this.interval = setInterval(this.reconnect.bind(this), 1000 * 60 * 5);
-        }
-    }
-
-    protected async reconnect(): Promise<void> {
-        try {
-            await this.logout();
-            await this.login();
-        } catch (e) {
-            this.logger.error('Error while connection with service: ' + e.message);
-        }
-
-        if (this.isLogin) {
-            if (this.interval) clearInterval(this.interval);
-            this._isLogin.next(true);
-            this.logger.log('Successfully connection with service');
-        }
+        await this.logout();
     }
 }
