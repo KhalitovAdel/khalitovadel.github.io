@@ -19,4 +19,6 @@ export class JobService {
     }
 
     public list = this.db.list.bind(this.db);
+
+    public fetch = this.db.fetchOne.bind(this.db);
 }
