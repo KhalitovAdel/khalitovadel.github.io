@@ -9,6 +9,11 @@
     "jsx": "react-jsx",
     "strictNullChecks": true,
     "module": "esnext",
-    "baseUrl": "./"
-  }
+    "baseUrl": "./",
+    "moduleResolution": "node",
+    "noEmit": true
+  },
+  "include": [
+    "src"
+  ]
 }
