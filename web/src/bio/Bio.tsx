@@ -133,7 +133,7 @@ export class Bio extends React.Component<IBioProps, unknown> {
 
                         <div className="profile py-5">
                             <p className="uppercase mb-2">profile</p>
-                            <div className="text-sm">{this.profile}</div>
+                            <div className="text-sm pr-2">{this.profile}</div>
                         </div>
 
                         <div className="history py-5">
