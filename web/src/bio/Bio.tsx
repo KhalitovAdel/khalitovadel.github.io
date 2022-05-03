@@ -121,7 +121,7 @@ export class Bio extends React.Component<IBioProps, unknown> {
                             />
                             <div className="sm:col-span-2 md:col-span-4 flex flex-col justify-center">
                                 <h1 className="text-firm text-2xl font-bold">{process.env.REACT_APP_SELF_FULLNAME}</h1>
-                                <p className="text-xl font-medium">Back-end engineer</p>
+                                <p className="text-xl font-medium">Javascript engineer</p>
                                 <p className="font-medium text-sm">
                                     contact me:{' '}
                                     <a className="text-firm font-bold" href={'mailto:'.concat(process.env.REACT_APP_SELF_MAIL || '')}>
