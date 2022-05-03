@@ -12,7 +12,7 @@ export type IProfile = { descriptions: string[] };
 
 export type IHistory = { period_end: string; todo: string[]; period_start: string; link: string; state: string; region: string; entity: string };
 
-export type ISkill = { Databases: string[]; languages: string[]; Frameworks: string[]; Other: string[] };
+export type ISkill = Record<string, string[]>;
 
 export type IEducation = { period_end: string; todo: string[]; period_start: string; region: string; entity: string };
 

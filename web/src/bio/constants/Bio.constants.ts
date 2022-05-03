@@ -101,8 +101,11 @@ export const data: IBioData = {
     skills: {
         languages: ['TypeScript', 'Python', 'JAVA'],
         Databases: ['Mongodb', 'MySQL', 'Postgres'],
-        Frameworks: ['Angular', 'Vue', 'Express', 'Nestjs', 'React'],
-        Other: ['Linux', 'Docker', 'Gitlab CI', 'Bitbucket CI', 'Elasticsearch (ELK)', 'RabbitMQ', 'Web scraping', 'Socket', 'GraphQL', 'Flow', 'Capacitor'],
+        'Web Frameworks': ['Angular', 'Vue', 'React', 'Capacitor'],
+        'Backend Frameworks': ['Express', 'Nestjs'],
+        'Testing tools': ['Jest', 'Puppeteer'],
+        Communication: ['RabbitMQ', 'RestApi', 'Web Socket', 'GraphQL'],
+        Other: ['Linux', 'Docker', 'Gitlab CI', 'Bitbucket CI', 'Elasticsearch (ELK)', 'Web scraping', 'Flow', 'Eslint'],
     },
     education: [
         {
