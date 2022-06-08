@@ -161,7 +161,7 @@ export class Bio extends React.Component<IBioProps, unknown> {
                         </div>
                         <div className="group lg:py-2">
                             <p className="uppercase mb-1">LINKS</p>
-                            <a className="text-firm" href="https://www.linkedin.com/in/adel-khalitov/">
+                            <a className="text-firm" href="https://www.linkedin.com/in/khalitov-adel">
                                 Linkedin
                             </a>
                         </div>
