@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кто ты?</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body style="margin: 0;">
+    <h1>Ты гей?</h1>
+
+    <div style="display: flex;">
+        <button id="yes">Да</button>
+        <button id="no">Нет</button>
+    </div>
+
+    <script>
+        const element = document.querySelector('[id="no"]');
+        let isHovered = false;
+
+        function changeCord(cursorX, cursorY) {
+            if (!isHovered) return;
+            element.style.position = 'absolute';
+            element.style.top = `${cursorY + 20}px`;
+            element.style.left = `${cursorX + 20}px`;
+        }
+
+
+        function autoChangeCord() {
+            if (isHovered) return;
+            const screenWidth = window.innerWidth - element.offsetWidth;
+            const screenHeight = window.innerHeight - element.offsetHeight;
+
+            element.style.position = 'absolute';
+            
+            element.style.top = `${getRandomInt(0, screenHeight)}px`;
+            element.style.left = `${getRandomInt(0, screenWidth)}px`;
+        }
+
+        function getRandomInt(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        document.addEventListener('mousemove', function(event) {
+            changeCord(event.clientX, event.clientY)
+            console.log(element.style.cssText, `Курсор находится в координатах (${event.clientX}, ${event.clientY})`);
+        });
+
+        element.addEventListener('mouseover', (e) => {
+            isHovered = true;
+        })
+
+        element.addEventListener('click', (e) => {
+            alert('Пидора ответ')
+        })
+
+        document.querySelector('[id="yes"]').addEventListener('click', (e) => {
+            alert('Я так и знал')
+        })
+
+        setInterval(autoChangeCord, 400)
+    </script>
+</body>
+</html>
