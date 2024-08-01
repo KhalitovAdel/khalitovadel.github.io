@@ -18,7 +18,7 @@ export const data: IBioData = {
     },
     history: [
         {
-            entity: '@biggest_russian_corporation',
+            entity: '@largest_russian_corporation',
             link: '',
             state: 'full-stack engineer',
             period_start: '2022/10',
