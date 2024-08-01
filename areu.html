@@ -23,6 +23,8 @@
     </div>
 
     <script>
+        // Ну и че ты тут найти собрался????
+
         const element = document.querySelector('[id="no"]');
         let isHovered = false;
 
@@ -52,8 +54,7 @@
         }
 
         document.addEventListener('mousemove', function(event) {
-            changeCord(event.clientX, event.clientY)
-            console.log(element.style.cssText, `Курсор находится в координатах (${event.clientX}, ${event.clientY})`);
+            changeCord(event.clientX, event.clientY);
         });
 
         element.addEventListener('mouseover', (e) => {
@@ -66,6 +67,13 @@
 
         document.querySelector('[id="yes"]').addEventListener('click', (e) => {
             alert('Я так и знал')
+        })
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code !== 'F12') return;
+            
+            e.preventDefault();
+            alert('Ты самый умный?')
         })
 
         setInterval(autoChangeCord, 400)
