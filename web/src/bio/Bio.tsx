@@ -41,7 +41,7 @@ export class Bio extends React.Component<IBioProps, unknown> {
 
         return (Object.keys(skills) || []).map((key, globalIndex) => {
             return (
-                <div className="lg:py-2 lg:ml-2" key={globalIndex}>
+                <div className="lg:py-2 lg:ml-2" translate="no" key={globalIndex}>
                     <p className="mb-1">{StringUtils.firstUpper(key)}</p>
                     <ul>
                         {(skills[key] || []).map((value, index) => {
@@ -68,7 +68,7 @@ export class Bio extends React.Component<IBioProps, unknown> {
                     return (
                         <li className="list-disc ml-3" key={value.title + String(index)}>
                             <a href={value.link || '#'} target="_blank">
-                                {value.title} {value.link && <span className="text-firm"> - open</span>}
+                                <span translate="no">{value.title}</span> {value.link && <span className="text-firm"> - open</span>}
                             </a>
                         </li>
                     );
@@ -81,7 +81,7 @@ export class Bio extends React.Component<IBioProps, unknown> {
         return (params || []).map((el) => {
             return (
                 <div className="py-2 pl-5" key={el.entity} id={el.entity}>
-                    <p className="font-medium">
+                    <p className="font-medium" translate="no">
                         {StringUtils.firstUpper(el.state ? el.state.concat(', ') : '')}{' '}
                         {el.link ? (
                             <a className="text-firm" href={el.link || '#'}>
@@ -121,7 +121,7 @@ export class Bio extends React.Component<IBioProps, unknown> {
                             />
                             <div className="sm:col-span-2 md:col-span-4 flex flex-col justify-center">
                                 <h1 className="text-firm text-2xl font-bold">{process.env.REACT_APP_SELF_FULLNAME}</h1>
-                                <p className="text-xl font-medium">Javascript engineer</p>
+                                <p className="text-xl font-medium">Full-stack engineer</p>
                                 <p className="font-medium text-sm">
                                     contact me:{' '}
                                     <a className="text-firm font-bold" href={'mailto:'.concat(process.env.REACT_APP_SELF_MAIL || '')}>
